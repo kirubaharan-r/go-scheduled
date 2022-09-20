@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name:  internal-kubectl
+  namespace: default
+---
+# https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: internal-kubectl-role
+  namespace: kube-system
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods","nodes","services","*"]
+  verbs: ["get", "watch", "list","delete","taint","*"]
+---
+# https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: internal-kubectl-rolebinding
+  namespace: kube-system
+subjects:
+- kind: ServiceAccount
+  name: internal-kubectl # Name is case sensitive
+roleRef:
+  kind: Role
+  name: internal-kubectl-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: internal-kubectl
+  namespace: default
+spec:
+  serviceAccountName: internal-kubectl
+  containers:
+    - name: internal-kubectl
+      image: kiru1eks/sch:finish1
+
